@@ -2,7 +2,10 @@ package com.benten.voicerecorder
 
 import android.Manifest.permission.RECORD_AUDIO
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.media.MediaDataSource
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
@@ -10,18 +13,20 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.benten.voicerecorder.adapterss.RecordingAdapter
 import com.benten.voicerecorder.databinding.ActivityMainBinding
+import com.benten.voicerecorder.services.RecorderService
 import java.io.File
 import java.io.IOException
+import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
     private var player: MediaPlayer? = null
 
-    private var recorder: MediaRecorder? = null
-    private lateinit var recordingAdapter: RecordingAdapter
 
+    private lateinit var recordingAdapter: RecordingAdapter
 
 
     private lateinit var binding: ActivityMainBinding
@@ -30,24 +35,29 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupRecyclerView()
+        val sharedPreferences = getSharedPreferences("MY_PREFERENCES", MODE_PRIVATE)
+        binding.switchLastMinute.isChecked = sharedPreferences.getBoolean(KEY_LAST_MINUTE_CHECK, false)
+        binding.switchLastMinute.setOnCheckedChangeListener { compoundButton, b ->
+            sharedPreferences.edit().putBoolean(KEY_LAST_MINUTE_CHECK, b).apply()
+        }
         binding.btnStartRecording.setOnClickListener {
             if (ActivityCompat.checkSelfPermission(
                     this,
                     RECORD_AUDIO
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
+                val intent = Intent(this, RecorderService::class.java)
+
                 if (!it.isSelected) {
-                    startRecording()
+                    ContextCompat.startForegroundService(this, intent)
                     binding.btnStartRecording.text = "Stop recording"
                 } else {
-                    stopRecording()
+                    stopService(intent)
                     binding.btnStartRecording.text = "Start recording"
                 }
                 it.isSelected = !it.isSelected
-
-
             } else {
-                requestPermissions(arrayOf(RECORD_AUDIO), 23)
+                requestPermissions(arrayOf(RECORD_AUDIO), VOICE_RECOORDER_PERMISSION_CODE)
             }
         }
     }
@@ -69,10 +79,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun stopRecording() {
-        recorder!!.stop()
-        updateRecycler()
-    }
 
     private fun stopPlaying() {
         player?.release()
@@ -91,25 +97,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("NewApi")
-    private fun startRecording() {
-        recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(this)
-        } else {
-            MediaRecorder()
-        }
-        recorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
-        recorder!!.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-        val file = File(cacheDir.path, "Recording ${System.currentTimeMillis()}.3gp")
-        recorder!!.setOutputFile(file)
-        recorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-        try {
-            recorder!!.prepare()
-        } catch (e: IOException) {
-            Log.e("LOG_TAG", "prepare() failed")
-        }
-        recorder!!.start()
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -117,11 +104,9 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 23) {
+        if (requestCode == VOICE_RECOORDER_PERMISSION_CODE) {
             if (permissions.contains(RECORD_AUDIO) && grantResults.first() == PackageManager.PERMISSION_GRANTED) {
-                startRecording()
             }
-
         }
     }
 
@@ -129,5 +114,10 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         player?.release()
         player = null
+    }
+
+    companion object {
+        const val VOICE_RECOORDER_PERMISSION_CODE = 23
+        const val KEY_LAST_MINUTE_CHECK = "KEY_LAST_MINUTE_CHECK"
     }
 }

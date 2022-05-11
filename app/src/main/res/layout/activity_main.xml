@@ -14,14 +14,37 @@
         android:drawableStart="@drawable/ic_recording"
         android:text="Start recording"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+        android:id="@+id/tvLastMinute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="32dp"
+        android:drawableStart="@drawable/ic_recording"
+        android:text="Last hour"
+        app:layout_constraintBottom_toBottomOf="@id/switchLastMinute"
+        app:layout_constraintEnd_toStartOf="@id/switchLastMinute"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/switchLastMinute"
+        app:layout_constraintVertical_bias="0.0" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvRecordings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/btnStartRecording" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchLastMinute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintBottom_toBottomOf="@id/btnStartRecording"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btnStartRecording" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
