@@ -7,22 +7,21 @@
     tools:context=".MainActivity">
 
     <Button
+        android:id="@+id/btnStartRecording"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start recording"
-        android:id="@+id/btnStartRecording"
+        android:layout_marginTop="20dp"
         android:drawableStart="@drawable/ic_recording"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="Start recording"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <Button
-        android:layout_width="wrap_content"
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRecordings"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Play recording"
-        android:id="@+id/btnPlayFirst"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnStartRecording" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

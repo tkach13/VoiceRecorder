@@ -1,6 +1,5 @@
 package com.benten.voicerecorder
 
-import android.Manifest
 import android.Manifest.permission.RECORD_AUDIO
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
@@ -11,7 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.core.content.PackageManagerCompat.LOG_TAG
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.benten.voicerecorder.adapterss.RecordingAdapter
 import com.benten.voicerecorder.databinding.ActivityMainBinding
 import java.io.File
 import java.io.IOException
@@ -20,6 +20,8 @@ class MainActivity : AppCompatActivity() {
     private var player: MediaPlayer? = null
 
     private var recorder: MediaRecorder? = null
+    private lateinit var recordingAdapter: RecordingAdapter
+
 
 
     private lateinit var binding: ActivityMainBinding
@@ -27,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setupRecyclerView()
         binding.btnStartRecording.setOnClickListener {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -47,14 +50,28 @@ class MainActivity : AppCompatActivity() {
                 requestPermissions(arrayOf(RECORD_AUDIO), 23)
             }
         }
+    }
 
-        binding.btnPlayFirst.setOnClickListener {
-            startPlaying("${cacheDir.path}/Recording12.3gp")
+    private fun setupRecyclerView() {
+        recordingAdapter = RecordingAdapter()
+        binding.rvRecordings.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.rvRecordings.adapter = this.recordingAdapter
+        recordingAdapter.setItemClickListener {
+            startPlaying("${cacheDir.path}/$it")
         }
+        updateRecycler()
+    }
+
+    private fun updateRecycler() {
+        recordingAdapter.updateAll(cacheDir.listFiles().map {
+            it.name
+        })
     }
 
     private fun stopRecording() {
         recorder!!.stop()
+        updateRecycler()
     }
 
     private fun stopPlaying() {
@@ -83,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         }
         recorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
         recorder!!.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-        val file = File(cacheDir.path, "Recording12.3gp")
+        val file = File(cacheDir.path, "Recording ${System.currentTimeMillis()}.3gp")
         recorder!!.setOutputFile(file)
         recorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
         try {
